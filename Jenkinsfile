@@ -24,13 +24,13 @@ pipeline {
 
         stage('Build Backend Image') {
             steps {
-                sh 'docker build -t todo-backend:${BUILD_NUMBER} ./Backend/todo-summary-assistant'
+                sh 'docker build -t todo-backend:${GIT_COMMIT} ./Backend/todo-summary-assistant'
             }
         }
 
         stage('Build Frontend Image') {
             steps {
-                sh 'docker build -t todo-frontend:${BUILD_NUMBER} ./Frontend/todo'
+                sh 'docker build -t todo-frontend:${GIT_COMMIT} ./Frontend/todo'
             }
         }
     }
