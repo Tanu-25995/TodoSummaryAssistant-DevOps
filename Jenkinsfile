@@ -11,11 +11,16 @@ pipeline {
 
         stage('Backend Test') {
             steps {
-                dir('Backend/todo-summary-assistant') {
-                    sh './mvnw test'
-                }
-            }
+              dir('Backend/todo-summary-assistant') {
+               sh '''
+                SPRING_DATASOURCE_URL="jdbc:mysql://todo-mysql:3306/todo_db?createDatabaseIfNotExist=true" \
+                SPRING_DATASOURCE_USERNAME="root" \
+                SPRING_DATASOURCE_PASSWORD="todo_root_password" \
+                ./mvnw test
+            '''
         }
+    }
+}
 
         stage('Build Backend Image') {
             steps {
