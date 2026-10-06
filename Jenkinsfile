@@ -24,13 +24,29 @@ pipeline {
 
         stage('Build Backend Image') {
             steps {
-                sh 'docker build -t todo-backend:${GIT_COMMIT} ./Backend/todo-summary-assistant'
+                sh 'docker build -t tanud/todo-backend:${GIT_COMMIT} ./Backend/todo-summary-assistant'
             }
         }
 
         stage('Build Frontend Image') {
             steps {
-                sh 'docker build -t todo-frontend:${GIT_COMMIT} ./Frontend/todo'
+                sh 'docker build -t tanud/todo-frontend:${GIT_COMMIT} ./Frontend/todo'
+            }
+        }
+        
+        stage('Push Images') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                )]) {
+                    sh '''
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                        docker push tanud/todo-backend:${GIT_COMMIT}
+                        docker push tanud/todo-frontend:${GIT_COMMIT}
+                    '''
+                }
             }
         }
     }
