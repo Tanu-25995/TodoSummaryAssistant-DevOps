@@ -18,7 +18,7 @@ services:
       retries: 10
 
   backend:
-    image: tanud/todo-backend:0f11f7a393c1b704c2d904ab64e9d0737d8fda42
+    image: todo-backend:ec2
     container_name: todo-backend
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/todo_db?createDatabaseIfNotExist=true
