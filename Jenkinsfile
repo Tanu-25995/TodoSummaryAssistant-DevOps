@@ -23,8 +23,6 @@ docker run -d --name todo-mysql-test \
   --network todosummaryassistant_todo-network \
   --network-alias todo-mysql \
   -e MYSQL_DATABASE=todo_db \
-  -e MYSQL_USER="$DB_USERNAME" \
-  -e MYSQL_PASSWORD="$DB_PASSWORD" \
   -e MYSQL_ROOT_PASSWORD="$DB_PASSWORD" \
   mysql:8.0
 
