@@ -36,7 +36,7 @@ pipeline {
 
         stage('Build Frontend Image') {
             steps {
-                sh 'docker build -t tanud/todo-frontend:${GIT_COMMIT} ./Frontend/todo'
+                sh 'docker build --build-arg REACT_APP_API_URL=http://13.127.186.93:8080/api/todos -t tanud/todo-frontend:${GIT_COMMIT} ./Frontend/todo'
             }
         }
         
@@ -51,6 +51,52 @@ pipeline {
                         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
                         docker push tanud/todo-backend:${GIT_COMMIT}
                         docker push tanud/todo-frontend:${GIT_COMMIT}
+                    '''
+                }
+            }
+        }
+	        stage('Deploy to EC2') {
+            steps {
+                withCredentials([sshUserPrivateKey(
+                    credentialsId: 'ec2-ssh-key',
+                    keyFileVariable: 'SSH_KEY',
+                    usernameVariable: 'SSH_USER'
+                )]) {
+                    sh '''
+                        ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "$SSH_USER@13.127.186.93" "
+                            set -e
+                            sudo docker pull tanud/todo-backend:${GIT_COMMIT}
+                            sudo docker pull tanud/todo-frontend:${GIT_COMMIT}
+                            sudo docker tag tanud/todo-backend:${GIT_COMMIT} todo-backend:ec2
+                            sudo docker tag tanud/todo-frontend:${GIT_COMMIT} todo-frontend:ec2
+                            cd ~/TodoSummaryAssistant-DevOps
+                            sudo docker compose up -d backend frontend
+                        "
+                    '''
+                }
+            }
+        }
+
+        stage('Post-deployment Health Check') {
+            steps {
+                withCredentials([sshUserPrivateKey(
+                    credentialsId: 'ec2-ssh-key',
+                    keyFileVariable: 'SSH_KEY',
+                    usernameVariable: 'SSH_USER'
+                )]) {
+                    sh '''
+                        ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "$SSH_USER@13.127.186.93" '
+                            for i in $(seq 1 12); do
+                                if curl -fsS http://localhost:8080/actuator/health >/dev/null &&
+                                   curl -fsS http://localhost:3000/ >/dev/null; then
+                                    echo "Deployment health check passed"
+                                    exit 0
+                                fi
+                                sleep 5
+                            done
+                            echo "Deployment health check failed"
+                            exit 1
+                        '
                     '''
                 }
             }
