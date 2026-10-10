@@ -18,6 +18,22 @@ pipeline {
                 passwordVariable: 'DB_PASSWORD'
             )]) {
                 sh '''
+                   docker rm -f todo-mysql-test 2>/dev/null || true
+docker run -d --name todo-mysql-test \
+  --network todosummaryassistant_todo-network \
+  --network-alias todo-mysql \
+  -e MYSQL_DATABASE=todo_db \
+  -e MYSQL_USER="$DB_USERNAME" \
+  -e MYSQL_PASSWORD="$DB_PASSWORD" \
+  -e MYSQL_ROOT_PASSWORD="$DB_PASSWORD" \
+  mysql:8.0
+
+for i in $(seq 1 30); do
+  if docker exec todo-mysql-test mysqladmin ping -h localhost -uroot -p"$DB_PASSWORD" --silent; then
+    break
+  fi
+  sleep 2
+done
                     SPRING_DATASOURCE_URL="jdbc:mysql://todo-mysql:3306/todo_db?createDatabaseIfNotExist=true" \
                     SPRING_DATASOURCE_USERNAME="$DB_USERNAME" \
                     SPRING_DATASOURCE_PASSWORD="$DB_PASSWORD" \
