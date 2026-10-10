@@ -21,9 +21,9 @@ services:
     image: todo-backend:ec2
     container_name: todo-backend
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/todo_db?createDatabaseIfNotExist=true
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      SPRING_DATASOURCE_URL: "jdbc:mysql://todo-summary-db.cvu4ka6oe0m1.ap-south-1.rds.amazonaws.com:3306/todo_db?createDatabaseIfNotExist=true"
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: ${RDS_PASSWORD}
     ports:
       - "8080:8080"
     depends_on:
@@ -33,7 +33,7 @@ services:
       - todo-network
 
   frontend:
-    image: tanud/todo-frontend:0f11f7a393c1b704c2d904ab64e9d0737d8fda42
+    image: todo-frontend:ec2
     container_name: todo-frontend
     ports:
       - "3000:8080"
